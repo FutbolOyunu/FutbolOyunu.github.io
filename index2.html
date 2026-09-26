@@ -1009,9 +1009,12 @@ input:checked + .slider:before {
 
       <!-- SEKME 2: ONLİNE LİDERLİK TABLOSU & REKORLAR (ASLA SIFIRLANMAZ) -->
       <div class="tab-pane" id="tabLeaderboard">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <span style="font-size: 12px; color: var(--accent); font-weight: 900;">🟢 CANLI ONLİNE DÜNYA SIRALAMASI</span>
-          <span id="lbSyncBadge" style="font-size: 11px; color: var(--gold); font-weight: 800;">⚡ Kalıcı Liste</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px;">
+          <div>
+            <span style="font-size: 13px; color: var(--accent); font-weight: 900;">🟢 CANLI ONLİNE DÜNYA SIRALAMASI</span>
+            <div id="lbSyncBadge" style="font-size: 11px; color: var(--gold); font-weight: 800;">⚡ Canlı Bulut Senkronizasyonu</div>
+          </div>
+          <button class="icon-btn" id="refreshLbBtn" style="padding: 5px 12px; font-size: 12px;" title="Online sıralamayı hemen sunucudan çek">🔄 Şimdi Yenile</button>
         </div>
         <div class="leaderboard-list" id="leaderboardList"></div>
       </div>
@@ -1440,19 +1443,20 @@ input:checked + .slider:before {
     updatePlayerDisplay();
   }
 
-  /* Kalıcı Online Sıralama (ASLA SIFIRLANMAZ) */
+  /* Kalıcı Online Sıralama (ASLA SIFIRLANMAZ & GERÇEK ONLINE BULUT ENTEGRASYONU) */
+  var CLOUD_API_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0de755fde1eb0";
   var DEFAULT_LEADERBOARD = [
     { name: "Arda Güler ⚡", score: 85, goals: 14, lvl: 5, acc: "100%", date: "Bugün" },
     { name: "Icardi Aşkın Olayım 🦁", score: 70, goals: 11, lvl: 4, acc: "95%", date: "Bugün" },
-    { name: "Fırtına Saliha 🌟", score: 65, goals: 10, lvl: 4, acc: "92%", date: "Dün" },
+    { name: "Fırtına Saliha 🌟", score: 65, goals: 10, lvl: 4, acc: "92%", date: "Bugün" },
     { name: "Muslera Panter 🧤", score: 55, goals: 9, lvl: 3, acc: "90%", date: "Dün" },
-    { name: "Dzeko Kule 🐺", score: 45, goals: 7, lvl: 3, acc: "85%", date: "2 gün önce" },
-    { name: "Semih Kılıçsoy 🎯", score: 40, goals: 6, lvl: 2, acc: "80%", date: "3 gün önce" }
+    { name: "Dzeko Kule 🐺", score: 45, goals: 7, lvl: 3, acc: "85%", date: "Dün" },
+    { name: "Semih Kılıçsoy 🎯", score: 40, goals: 6, lvl: 2, acc: "80%", date: "2 gün önce" }
   ];
 
-  function getLeaderboard() {
+  function getLocalLeaderboard() {
     try {
-      var raw = localStorage.getItem("futbol_permanent_leaderboard_v2");
+      var raw = localStorage.getItem("futbol_permanent_leaderboard_v3");
       if (raw) {
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -1461,49 +1465,106 @@ input:checked + .slider:before {
     return DEFAULT_LEADERBOARD.slice();
   }
 
+  function setLocalLeaderboard(list) {
+    try {
+      localStorage.setItem("futbol_permanent_leaderboard_v3", JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  // Çevrimdışı ve sunucu listesini akıllıca birleştir
+  function mergeLeaderboard(serverList, localList) {
+    var combined = (serverList || []).concat(localList || []);
+    var seen = {};
+    var unique = [];
+    combined.forEach(function (it) {
+      if (!it || !it.name) return;
+      var key = it.name + "_" + it.score + "_" + it.goals;
+      if (!seen[key]) {
+        seen[key] = 1;
+        unique.push(it);
+      }
+    });
+    unique.sort(function (a, b) { return b.score - a.score; });
+    return unique.slice(0, 40);
+  }
+
+  // Canlı buluttan çekme fonksiyonu
+  function fetchOnlineLeaderboard(onSuccess) {
+    var badge = document.getElementById("lbSyncBadge");
+    if (badge) badge.innerHTML = "⏳ Buluttan Çekiliyor...";
+    fetch(CLOUD_API_URL + "?nocache=" + Date.now())
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        var remoteScores = (json && json.data && Array.isArray(json.data.scores)) ? json.data.scores : [];
+        var merged = mergeLeaderboard(remoteScores, getLocalLeaderboard());
+        setLocalLeaderboard(merged);
+        if (badge) badge.innerHTML = "🟢 Canlı Buluta Bağlı (" + merged.length + " Skor)";
+        renderLeaderboardDOM(merged);
+        if (onSuccess) onSuccess(merged);
+      })
+      .catch(function (err) {
+        if (badge) badge.innerHTML = "⚡ Çevrimdışı Bellek";
+        renderLeaderboardDOM(getLocalLeaderboard());
+      });
+  }
+
   function saveScoreToLeaderboard(score, goals, correct, total, maxLvl) {
     if (score <= 0) return;
-    var list = getLeaderboard();
     var acc = Math.round((correct / Math.max(1, total)) * 100) + "%";
+    var nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     var entry = {
       name: (player.avatar ? player.avatar + " " : "") + player.name,
       score: score,
       goals: goals,
       lvl: maxLvl || (currentLevelIdx + 1),
       acc: acc,
-      date: "Şimdi"
+      date: "Bugün " + nowTime
     };
 
-    // Kalıcı listeye ekle (asla silinmez, birikir)
-    list.push(entry);
-    list.sort(function (a, b) { return b.score - a.score; });
-    list = list.slice(0, 25);
+    // 1) Önce yerel listeye anında ekle
+    var localList = getLocalLeaderboard();
+    localList.unshift(entry);
+    localList.sort(function (a, b) { return b.score - a.score; });
+    localList = localList.slice(0, 40);
+    setLocalLeaderboard(localList);
+    renderLeaderboardDOM(localList);
 
-    try {
-      localStorage.setItem("futbol_permanent_leaderboard_v2", JSON.stringify(list));
-    } catch (e) {}
+    // 2) Gerçek zamanlı Online Cloud REST API'ye PUT ile kaydet (diğer tüm browserlar anında görür)
+    var badge = document.getElementById("lbSyncBadge");
+    if (badge) badge.innerHTML = "⏳ Buluta Yükleniyor...";
 
-    // Cloud REST API senkronizasyon denemesi
-    try {
-      fetch("https://api.restful-api.dev/objects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "futbol_score_entry",
-          data: entry
-        })
-      }).catch(function () {});
-    } catch (e) {}
-
-    renderLeaderboard();
+    fetch(CLOUD_API_URL + "?nocache=" + Date.now())
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        var serverScores = (json && json.data && Array.isArray(json.data.scores)) ? json.data.scores : [];
+        var updated = mergeLeaderboard([entry], serverScores);
+        return fetch(CLOUD_API_URL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "futbol_global_leaderboard",
+            data: { scores: updated }
+          })
+        });
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (resJson) {
+        if (badge) badge.innerHTML = "🟢 Buluta Kaydedildi! (Dünya Çapında Aktif)";
+        if (resJson && resJson.data && Array.isArray(resJson.data.scores)) {
+          setLocalLeaderboard(resJson.data.scores);
+          renderLeaderboardDOM(resJson.data.scores);
+        }
+      })
+      .catch(function () {
+        if (badge) badge.innerHTML = "⚡ Yerel Kaydedildi";
+      });
   }
 
-  function renderLeaderboard() {
+  function renderLeaderboardDOM(list) {
     var box = document.getElementById("leaderboardList");
     if (!box) return;
-    var list = getLeaderboard();
     box.innerHTML = "";
-    list.forEach(function (it, idx) {
+    (list || getLocalLeaderboard()).forEach(function (it, idx) {
       var d = document.createElement("div");
       d.className = "lb-item";
       var rankBadge = (idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "#" + (idx + 1));
@@ -1516,6 +1577,11 @@ input:checked + .slider:before {
         '<div class="lb-score">' + it.score + ' <small>Puan</small></div>';
       box.appendChild(d);
     });
+  }
+
+  function renderLeaderboard() {
+    renderLeaderboardDOM(getLocalLeaderboard());
+    fetchOnlineLeaderboard();
   }
 
   /* ==========================================================================
@@ -2710,6 +2776,14 @@ input:checked + .slider:before {
     var isLight = root.getAttribute("data-theme") === "light";
     root.setAttribute("data-theme", isLight ? "dark" : "light");
   });
+
+  var refreshLbBtn = document.getElementById("refreshLbBtn");
+  if (refreshLbBtn) {
+    refreshLbBtn.addEventListener("click", function () {
+      sfx.right();
+      fetchOnlineLeaderboard();
+    });
+  }
 
   /* Başlatma */
   updatePlayerDisplay();
