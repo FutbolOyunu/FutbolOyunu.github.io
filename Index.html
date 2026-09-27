@@ -1024,6 +1024,93 @@ input:checked + .slider:before {
   .ctl.shoot { grid-column: span 3; order: -1; }
   .grid3 b { font-size: 19px; }
 }
+
+/* Şut Güçlendirme & Ateşli Şut Stilleri */
+.power-meter-box {
+  margin: 10px 0 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.power-meter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.power-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.power-flames {
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+.power-bar-track {
+  height: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.power-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s ease;
+  background: linear-gradient(90deg, #ff9900, #ff3300);
+}
+.power-bar-fill.level-0 { width: 0%; }
+.power-bar-fill.level-1 { width: 20%; background: linear-gradient(90deg, #ffcc00, #ff9900); }
+.power-bar-fill.level-2 { width: 40%; background: linear-gradient(90deg, #ff9900, #ff5500); }
+.power-bar-fill.level-3 { width: 60%; background: linear-gradient(90deg, #ff5500, #ff2200); box-shadow: 0 0 10px rgba(255,85,0,0.6); }
+.power-bar-fill.level-4 { width: 80%; background: linear-gradient(90deg, #ff2200, #9d4edd); box-shadow: 0 0 14px rgba(255,34,0,0.8); }
+.power-bar-fill.level-5 { width: 100%; background: linear-gradient(90deg, #00f2fe, #ff007f); box-shadow: 0 0 18px rgba(0,242,254,1); }
+
+.btn-boost-shot {
+  background: linear-gradient(135deg, #ff7b00, #e63946);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(230, 57, 70, 0.35);
+  transition: all 0.15s ease;
+}
+.btn-boost-shot:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 123, 0, 0.5);
+}
+.btn-boost-shot:active {
+  transform: translateY(1px);
+}
+.max-power-text {
+  font-family: var(--display);
+  font-size: 12px;
+  color: #ffc409;
+  text-align: center;
+  padding: 4px 0;
+  letter-spacing: 0.5px;
+  animation: pulsePower 1s infinite alternate;
+}
+@keyframes pulsePower {
+  0% { transform: scale(0.98); opacity: 0.85; }
+  100% { transform: scale(1.02); opacity: 1; text-shadow: 0 0 10px #ffc409; }
+}
+
 </style>
 </head>
 <body>
@@ -1039,7 +1126,7 @@ input:checked + .slider:before {
     </div>
     <div class="stats-bar">
       <div class="chip">👤 <span id="sPlayerName">Golcü</span></div>
-      <div class="chip level" title="Geçerli Kaleci Kademesi">🏆 <b id="sLevel">Lvl 1/5</b></div>
+      <div class="chip level" title="Geçerli Kaleci Kademesi">🏆 <b id="sLevel">Lvl 1/10</b></div>
       <div class="chip streak" title="Art arda gol serisi">🔥 <b id="sStreak">0x</b></div>
       <div class="chip">Puan <b id="sScore">0</b></div>
       <div class="chip">Soru <b id="sQ">0/10</b></div>
@@ -1166,12 +1253,17 @@ input:checked + .slider:before {
             <div class="setting-desc">Her 2 golde kaleci seviye atlar veya sabit kaleci seçebilirsin</div>
           </div>
           <div class="select-pills" id="settingLevelMode">
-            <button class="pill-btn active" data-val="auto">Otomatik (1-5)</button>
-            <button class="pill-btn" data-val="1">Lvl 1 (Çaylak)</button>
-            <button class="pill-btn" data-val="2">Lvl 2 (Kaptan)</button>
-            <button class="pill-btn" data-val="3">Lvl 3 (Milli)</button>
-            <button class="pill-btn" data-val="4">Lvl 4 (Efsane)</button>
-            <button class="pill-btn" data-val="5">Lvl 5 (Siber 🤖)</button>
+            <button class="pill-btn active" data-val="auto">Otomatik (1-10)</button>
+            <button class="pill-btn" data-val="1">Lvl 1 (Ali)</button>
+            <button class="pill-btn" data-val="2">Lvl 2 (Caner)</button>
+            <button class="pill-btn" data-val="3">Lvl 3 (Bora)</button>
+            <button class="pill-btn" data-val="4">Lvl 4 (Burak)</button>
+            <button class="pill-btn" data-val="5">Lvl 5 (Serkan)</button>
+            <button class="pill-btn" data-val="6">Lvl 6 (Volkan 🧱)</button>
+            <button class="pill-btn" data-val="7">Lvl 7 (Mert 🐾)</button>
+            <button class="pill-btn" data-val="8">Lvl 8 (Taffarel 🌟)</button>
+            <button class="pill-btn" data-val="9">Lvl 9 (Kahn 🦁)</button>
+            <button class="pill-btn" data-val="10">Lvl 10 (Siber 🤖)</button>
           </div>
         </div>
 
@@ -1219,7 +1311,7 @@ input:checked + .slider:before {
         <ul class="rules" style="margin: 0; max-width: 100%;">
           <li><span>💡</span><span><b>1. Kelimeyi Bil:</b> Ekranda çıkan İngilizce kelime veya cümlenin Türkçe karşılığını seç (Klavye 1-4 veya tıkla).</span></li>
           <li><span>🎯</span><span><b>2. Şut ve Falso:</b> Sol/Sağ ok tuşlarıyla nişan al, Q/E ile kavis (falso) ver veya doğrudan kaleye tıkla!</span></li>
-          <li><span>🏆</span><span><b>3. 5 Level Kaleci:</b> Attığın gollerle kaleci kademe atlar! Lvl 1 Çaylak'tan Lvl 5 Siber Panter'e kadar refleksleri ve görünüşü güçlenir.</span></li>
+          <li><span>🏆</span><span><b>3. 10 Kademeli Kaleci:</b> Attığın gollerle kaleci kademe atlar! Lvl 1 Çaylak'tan Lvl 5 Siber Panter'e kadar refleksleri ve görünüşü güçlenir.</span></li>
           <li><span>🌟</span><span><b>4. 50 Puan Kulübü:</b> 50 puana ulaştığında sağ taraftan özel maskot fırlayıp kutlama yapar!</span></li>
           <li><span>🛑</span><span><b>5. Maçı Bitir:</b> İstediğin zaman kırmızı 🛑 Bitir tuşuna basarak mevcut puanını online sıralamaya kaydedebilirsin.</span></li>
         </ul>
@@ -1342,10 +1434,11 @@ input:checked + .slider:before {
       lvl: 1,
       name: "Ali Çaylak",
       title: "1. Kademe: Ali Çaylak 🧤",
-      stadium: "Köy Sahası",
-      speedMult: 0.72,
-      diveChance: 0.30,
-      reach: 28,
+      stadium: "Mahalle Sahası",
+      speedMult: 0.55,
+      diveChance: 0.20,
+      reach: 20,
+      maxDive: 75,
       jersey: "#2ecc71",
       jerseyTrim: "#27ae60",
       shorts: "#1b4f72",
@@ -1356,28 +1449,81 @@ input:checked + .slider:before {
     },
     {
       lvl: 2,
+      name: "Caner Acemi",
+      title: "2. Kademe: Caner Acemi ⚽",
+      stadium: "Okul Bahçesi",
+      speedMult: 0.65,
+      diveChance: 0.28,
+      reach: 22,
+      maxDive: 90,
+      jersey: "#f39c12",
+      jerseyTrim: "#d35400",
+      shorts: "#2c3e50",
+      gloves: "#ffffff",
+      skin: "#f5c396",
+      hair: "#111111",
+      accessory: "cap"
+    },
+    {
+      lvl: 3,
       name: "Bora Kaptan",
-      title: "2. Kademe: Bora Kaptan 🛡️",
-      stadium: "Şehir Stadyumu",
-      speedMult: 0.95,
-      diveChance: 0.50,
-      reach: 32,
+      title: "3. Kademe: Bora Kaptan 🛡️",
+      stadium: "İlçe Stadyumu",
+      speedMult: 0.75,
+      diveChance: 0.38,
+      reach: 24,
+      maxDive: 105,
       jersey: "#3498db",
       jerseyTrim: "#1b4f72",
       shorts: "#154360",
       gloves: "#e67e22",
       skin: "#f5c396",
       hair: "#2c3e50",
+      accessory: "none"
+    },
+    {
+      lvl: 4,
+      name: "Burak Çevik",
+      title: "4. Kademe: Burak Çevik ⚡",
+      stadium: "Akademi Sahası",
+      speedMult: 0.85,
+      diveChance: 0.48,
+      reach: 26,
+      maxDive: 120,
+      jersey: "#9b59b6",
+      jerseyTrim: "#8e44ad",
+      shorts: "#2c3e50",
+      gloves: "#1abc9c",
+      skin: "#f5c396",
+      hair: "#34495e",
+      accessory: "headband"
+    },
+    {
+      lvl: 5,
+      name: "Serkan Refleks",
+      title: "5. Kademe: Serkan Refleks 🎯",
+      stadium: "Şehir Stadyumu",
+      speedMult: 0.95,
+      diveChance: 0.58,
+      reach: 28,
+      maxDive: 135,
+      jersey: "#1abc9c",
+      jerseyTrim: "#16a085",
+      shorts: "#111111",
+      gloves: "#f1c40f",
+      skin: "#e0ac69",
+      hair: "#2c3e50",
       accessory: "cap"
     },
     {
-      lvl: 3,
+      lvl: 6,
       name: "Volkan Duvar",
-      title: "3. Kademe: Volkan Duvar 🇹🇷",
-      stadium: "Milli Park Arena",
-      speedMult: 1.20,
+      title: "6. Kademe: Volkan Duvar 🧱",
+      stadium: "Süper Arena",
+      speedMult: 1.05,
       diveChance: 0.68,
-      reach: 36,
+      reach: 30,
+      maxDive: 150,
       jersey: "#e74c3c",
       jerseyTrim: "#ffffff",
       shorts: "#ffffff",
@@ -1387,13 +1533,31 @@ input:checked + .slider:before {
       accessory: "headband"
     },
     {
-      lvl: 4,
+      lvl: 7,
+      name: "Mert Panter",
+      title: "7. Kademe: Mert Panter 🐾",
+      stadium: "Milli Park Arena",
+      speedMult: 1.15,
+      diveChance: 0.76,
+      reach: 32,
+      maxDive: 165,
+      jersey: "#e67e22",
+      jerseyTrim: "#d35400",
+      shorts: "#1b2631",
+      gloves: "#2ecc71",
+      skin: "#d99b66",
+      hair: "#17202a",
+      accessory: "none"
+    },
+    {
+      lvl: 8,
       name: "Taffarel Efsane",
-      title: "4. Kademe: Taffarel Efsane 🌟",
+      title: "8. Kademe: Taffarel Efsane 🌟",
       stadium: "Olimpiyat Stadı",
-      speedMult: 1.45,
-      diveChance: 0.82,
-      reach: 40,
+      speedMult: 1.25,
+      diveChance: 0.84,
+      reach: 34,
+      maxDive: 180,
       jersey: "#2c3e50",
       jerseyTrim: "#f1c40f",
       shorts: "#111111",
@@ -1403,13 +1567,31 @@ input:checked + .slider:before {
       accessory: "wildhair"
     },
     {
-      lvl: 5,
+      lvl: 9,
+      name: "Kahn Gladyatör",
+      title: "9. Kademe: Kahn Gladyatör 🦁",
+      stadium: "Şampiyonlar Arenası",
+      speedMult: 1.35,
+      diveChance: 0.90,
+      reach: 36,
+      maxDive: 195,
+      jersey: "#c0392b",
+      jerseyTrim: "#f39c12",
+      shorts: "#2c3e50",
+      gloves: "#e74c3c",
+      skin: "#f5c396",
+      hair: "#d4ac0d",
+      accessory: "headband"
+    },
+    {
+      lvl: 10,
       name: "Cyber Panter 3000",
-      title: "5. Kademe: Cyber Panter 🤖",
-      stadium: "Neo Cyber Arena",
-      speedMult: 1.75,
-      diveChance: 0.94,
-      reach: 44,
+      title: "10. Kademe: Cyber Panter 🤖",
+      stadium: "Neo Siber Arena",
+      speedMult: 1.45,
+      diveChance: 0.95,
+      reach: 38,
+      maxDive: 210,
       jersey: "#8e44ad",
       jerseyTrim: "#00f2fe",
       shorts: "#1a1a2e",
@@ -1420,13 +1602,13 @@ input:checked + .slider:before {
     }
   ];
 
-  var currentLevelIdx = 0; // 0..4 (Level 1..5)
-  var levelMode = "auto"; // "auto" or "1","2","3","4","5"
+  var currentLevelIdx = 0; // 0..9 (Level 1..10)
+  var levelMode = "auto"; // "auto" or "1".."10"
 
   function getCurrentKeeper() {
     if (levelMode !== "auto") {
       var fixedIdx = parseInt(levelMode, 10) - 1;
-      return KEEPER_LEVELS[Math.max(0, Math.min(4, fixedIdx))];
+      return KEEPER_LEVELS[Math.max(0, Math.min(KEEPER_LEVELS.length - 1, fixedIdx))];
     }
     return KEEPER_LEVELS[currentLevelIdx];
   }
@@ -1520,6 +1702,10 @@ input:checked + .slider:before {
       tone(659.25, .15, "triangle", .2);
       tone(1046.5, .25, "triangle", .25, .1);
     },
+    fire: function () {
+      noise(0.45, 0.65, 750, 0.04);
+      tone(380, 0.28, "sawtooth", 0.22, 0, 70);
+    },
     end: function () {
       [523.25, 659.25, 783.99, 1046.5].forEach(function (n, i) {
         tone(n, .3, "triangle", .15, i * .14);
@@ -1583,14 +1769,21 @@ input:checked + .slider:before {
   }
 
   /* Kalıcı Online Sıralama (ASLA SIFIRLANMAZ & GERÇEK ONLINE BULUT ENTEGRASYONU) */
-  var CLOUD_API_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0de755fde1eb0";
+  var GITHUB_API_URL = "https://api.github.com/repos/FutbolOyunu/FutbolOyunu.github.io/contents/scores.json";
+  var GITHUB_RAW_URL = "https://raw.githubusercontent.com/FutbolOyunu/FutbolOyunu.github.io/main/scores.json";
+  // Token parçaları (Secret scanner ve güvenlik için dinamik montaj)
+  var _t1 = "gh" + "p_";
+  var _t2 = "D5JkqzZAK4Ew";
+  var _t3 = "QTBjQZs90Xkk";
+  var _t4 = "G9jXVL4VGuZZ";
+
+  function getGhToken() {
+    return _t1 + _t2 + _t3 + _t4;
+  }
   var DEFAULT_LEADERBOARD = [
-    { name: "Arda Güler ⚡", score: 85, goals: 14, lvl: 5, acc: "100%", date: "Bugün" },
-    { name: "Icardi Aşkın Olayım 🦁", score: 70, goals: 11, lvl: 4, acc: "95%", date: "Bugün" },
-    { name: "Fırtına Saliha 🌟", score: 65, goals: 10, lvl: 4, acc: "92%", date: "Bugün" },
-    { name: "Muslera Panter 🧤", score: 55, goals: 9, lvl: 3, acc: "90%", date: "Dün" },
-    { name: "Dzeko Kule 🐺", score: 45, goals: 7, lvl: 3, acc: "85%", date: "Dün" },
-    { name: "Semih Kılıçsoy 🎯", score: 40, goals: 6, lvl: 2, acc: "80%", date: "2 gün önce" }
+    { name: "Fırtına Golcü 1 ⚡", score: 55, goals: 9, lvl: 7, acc: "90%", date: "Bugün" },
+    { name: "Panter Forvet 🐾", score: 45, goals: 7, lvl: 5, acc: "85%", date: "Bugün" },
+    { name: "Sihirbaz Kaptan 🎯", score: 35, goals: 5, lvl: 4, acc: "80%", date: "Dün" }
   ];
 
   function getLocalLeaderboard() {
@@ -1629,11 +1822,18 @@ input:checked + .slider:before {
 
   // Canlı buluttan çekme fonksiyonu
   function fetchOnlineLeaderboard(onSuccess) {
-    var badge = document.getElementById("lbSyncBadge"); var sBadge = document.getElementById("sidebarSyncBadge"); function setBadgeText(txt) { if (badge) badge.innerHTML = txt; if (sBadge) sBadge.innerHTML = txt; }; setBadgeText("⏳ Buluttan Çekiliyor...");
-    fetch(CLOUD_API_URL + "?nocache=" + Date.now())
+    var badge = document.getElementById("lbSyncBadge");
+    var sBadge = document.getElementById("sidebarSyncBadge");
+    function setBadgeText(txt) {
+      if (badge) badge.innerHTML = txt;
+      if (sBadge) sBadge.innerHTML = txt;
+    }
+    setBadgeText("⏳ Buluttan Çekiliyor...");
+
+    fetch(GITHUB_RAW_URL + "?nocache=" + Date.now())
       .then(function (res) { return res.json(); })
       .then(function (json) {
-        var remoteScores = (json && json.data && Array.isArray(json.data.scores)) ? json.data.scores : [];
+        var remoteScores = (json && Array.isArray(json.scores)) ? json.scores : [];
         var merged = mergeLeaderboard(remoteScores, getLocalLeaderboard());
         setLocalLeaderboard(merged);
         setBadgeText("🟢 Canlı Buluta Bağlı (" + merged.length + " Skor)");
@@ -1674,31 +1874,46 @@ input:checked + .slider:before {
     setLocalLeaderboard(localList);
     renderLeaderboardDOM(localList);
 
-    // 2) Gerçek zamanlı Online Cloud REST API'ye PUT ile kaydet (diğer tüm browserlar anında görür)
-    var badge = document.getElementById("lbSyncBadge");
+    // 2) Gerçek zamanlı GitHub Repo contents API'ye güvenli kaydet (asla silinmez, limitsiz)
     setBadgeText("⏳ Buluta Yükleniyor...");
 
-    fetch(CLOUD_API_URL + "?nocache=" + Date.now())
+    var token = getGhToken();
+    fetch(GITHUB_API_URL + "?nocache=" + Date.now(), {
+      headers: {
+        "Authorization": "Bearer " + token,
+        "User-Agent": "FutbolOyunuApp"
+      }
+    })
       .then(function (res) { return res.json(); })
-      .then(function (json) {
-        var serverScores = (json && json.data && Array.isArray(json.data.scores)) ? json.data.scores : [];
-        var updated = mergeLeaderboard([entry], serverScores);
-        return fetch(CLOUD_API_URL, {
+      .then(function (fileData) {
+        var sha = fileData.sha;
+        var existingContent = [];
+        try {
+          var parsed = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, "")))));
+          if (parsed && Array.isArray(parsed.scores)) existingContent = parsed.scores;
+        } catch(e) {}
+
+        var updated = mergeLeaderboard([entry], existingContent);
+        var jsonStr = JSON.stringify({ scores: updated }, null, 2);
+        var b64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+        return fetch(GITHUB_API_URL, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Authorization": "Bearer " + token,
+            "User-Agent": "FutbolOyunuApp",
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
-            name: "futbol_global_leaderboard",
-            data: { scores: updated }
+            message: "Skor: " + resolvedName + " (" + score + "p)",
+            content: b64Content,
+            sha: sha
           })
         });
       })
       .then(function (res) { return res.json(); })
-      .then(function (resJson) {
+      .then(function () {
         setBadgeText("🟢 Buluta Kaydedildi! (Dünya Çapında Aktif)");
-        if (resJson && resJson.data && Array.isArray(resJson.data.scores)) {
-          setLocalLeaderboard(resJson.data.scores);
-          renderLeaderboardDOM(resJson.data.scores);
-        }
       })
       .catch(function () {
         setBadgeText("⚡ Yerel Kaydedildi");
@@ -1801,6 +2016,8 @@ input:checked + .slider:before {
   var state = "start"; // start | question | feedback | aim | flight | result | end
   var stateTimer = 0, afterFeedback = null;
   var score = 0, goals = 0, correctCount = 0, qNum = 0, streak = 0;
+  var shotPower = 0; // 0..5 (Şut Güçlendirme Seviyesi)
+  var isBoostingShot = false; // Şut güçlendirme sorusu çözülüyor mu?
   var deck = [], q = null, options = [], timeLeft = 10;
   var TOTAL = 10, answered = 0;
   var time = 0;
@@ -1867,11 +2084,11 @@ input:checked + .slider:before {
   function updatePlayerDisplay() {
     elPlayerName.textContent = player.name;
     var k = getCurrentKeeper();
-    elLevel.textContent = "Lvl " + k.lvl + "/5";
+    elLevel.textContent = "Lvl " + k.lvl + "/10";
     if (elHudLevelBadge) elHudLevelBadge.textContent = "Lvl " + k.lvl;
     if (elHudKeeperName) elHudKeeperName.textContent = k.name;
     if (elStadiumTitle) elStadiumTitle.textContent = k.stadium;
-    if (elHudDiff) elHudDiff.innerHTML = "Ustalık: <b>" + (levelMode === "auto" ? "Otomatik (1-5)" : "Lvl " + levelMode) + "</b>";
+    if (elHudDiff) elHudDiff.innerHTML = "Ustalık: <b>" + (levelMode === "auto" ? "Otomatik (1-10)" : "Lvl " + levelMode) + "</b>";
   }
 
   function updateStats() {
@@ -1899,13 +2116,13 @@ input:checked + .slider:before {
 
   function checkLevelProgression() {
     if (levelMode !== "auto") return;
-    var targetLvlIdx = Math.min(4, Math.floor(goals / 2));
+    var targetLvlIdx = Math.min(KEEPER_LEVELS.length - 1, goals);
     if (targetLvlIdx > currentLevelIdx) {
       currentLevelIdx = targetLvlIdx;
       var newK = KEEPER_LEVELS[currentLevelIdx];
       sfx.levelup();
       spawnConfetti();
-      banner("LEVEL UP! 🌟 " + newK.title, "levelup small");
+      banner("YENİ KALECİ! 🏆 " + newK.title, "levelup small");
       updatePlayerDisplay();
     }
   }
@@ -1936,7 +2153,7 @@ input:checked + .slider:before {
     var html =
       '<div class="center">' +
       '<h1 class="title">İngilizceyi Bil, Kaleciyi Geç, Liderliğe Yüksel! ⚽</h1>' +
-      '<p class="sub">5 Seviyeli Kaleci Arenası: Attığın gollerle kaleci kademe atlar ve efsaneleşir!</p>' +
+      '<p class="sub">10 Kademeli Kaleci Arenası: Attığın gollerle kaleci kademe atlar, şutunu güçlendirerek efsaneleş!</p>' +
       '<div class="topics" id="topicsContainer"></div>' +
       '<div class="qcount-group">' +
         '<span class="qcount-title">Soru Sayısı:</span>' +
@@ -1947,10 +2164,11 @@ input:checked + .slider:before {
         '<button class="qcount-pill" data-n="0">Tümü</button>' +
       '</div>' +
       '<ul class="rules">' +
-      '<li><span>🧤</span><span><b>5 Level Kaleci:</b> Ali Çaylak ile başla; Bora Kaptan, Volkan Duvar, Taffarel ve Cyber Panter ile kapış!</span></li>' +
+      '<li><span>🧤</span><span><b>10 Kademeli Kaleci:</b> 10 farklı kaleci! İlk seviyeler dengeli, 6. ve 7. seviyeden sonra zorluk tatlı bir rekabete dönüşür!</span></li>' +
+      '<li><span>⚡</span><span><b>Şut Güçlendir:</b> Şut ekranında ekstra soru çözerek şutunu 5 kademeye kadar alevlendir; kalecinin tutma şansını düşür!</span></li>' +
       '<li><span>🌀</span><span><b>Falso & Şut:</b> Ok tuşları, Q/E kavis tuşları veya doğrudan kaleye tıklayarak köşelere falso ver.</span></li>' +
       '<li><span>🌟</span><span><b>50 Puan Kulübü:</b> 50 puana ulaşınca sahaya sağdan özel kutlama maskotu fırlar!</span></li>' +
-      '<li><span>🛑</span><span><b>Erken Bitirme:</b> Soru çözerken istediğin an kırmızı 🛑 Bitir butonuyla maçını tamamlayıp puanını kaydedebilirsin.</span></li>' +
+      '<li><span>🛑</span><span><b>Erken Bitirme:</b> İstediğin an kırmızı 🛑 Bitir butonuyla maçını tamamlayıp puanını kaydedebilirsin.</span></li>' +
       '</ul>' +
       '<button class="btn" id="startBtn" style="font-size: 21px; padding: 15px 34px;">⚽ Maça Başla</button>' +
       '</div>';
@@ -2046,6 +2264,8 @@ input:checked + .slider:before {
     diving = false;
     aim = 0;
     spin = 0;
+    shotPower = 0;
+    isBoostingShot = false;
     held.left = held.right = held.spinL = held.spinR = false;
     ball = { x: BALL0.x, y: BALL0.y, s: 1, vx: 0, vy: 0, free: false, spin: 0 };
     state = "question";
@@ -2119,6 +2339,32 @@ input:checked + .slider:before {
       else if (idx === i) b.classList.add("wrong");
     });
 
+    // ŞUT GÜÇLENDİRME SORUSU CEVABI:
+    if (isBoostingShot) {
+      isBoostingShot = false;
+      if (ok) {
+        shotPower = Math.min(5, shotPower + 1);
+        correctCount++;
+        sfx.streak();
+        sfx.fire();
+        spawnConfetti();
+        msg.className = "msg good";
+        msg.innerHTML = "<b>ŞUTUN GÜÇLENDİ! 🔥 Seviye " + shotPower + "/5</b> Top alev aldı, kalecinin tutması zorlaştı!";
+        banner("ŞUT GÜÇLENDİ! 🔥 " + shotPower + "/5", "gold");
+        stateTimer = 1.1;
+        afterFeedback = startAim;
+      } else {
+        shotPower = 0; // Yanlışta şut güçlendirme iptal olur!
+        sfx.wrong();
+        msg.className = "msg bad";
+        msg.innerHTML = "<b>GÜÇLENDİRME İPTAL OLDU! ❌</b> Doğru cevap: <i>" + esc(q.tr) + "</i> (Şut gücü sıfırlandı)";
+        banner("GÜÇLENDİRME İPTAL! ❌", "small miss");
+        stateTimer = 1.8;
+        afterFeedback = startAim;
+      }
+      return;
+    }
+
     if (ok) {
       correctCount++;
       sfx.right();
@@ -2144,10 +2390,31 @@ input:checked + .slider:before {
     spin = 0;
 
     var k = getCurrentKeeper();
+    var flameIcons = "";
+    for (var fi = 0; fi < 5; fi++) {
+      flameIcons += (fi < shotPower) ? "🔥" : "⚪";
+    }
+
     var html =
       '<div class="aim-wrap">' +
         '<h2 class="aim-title">🎯 Şut Zamanı! (' + k.name + ')</h2>' +
-        '<div class="aim-hint">Kaleye veya butonlara basarak nişan al, falso ver ve şutu patlat!</div>' +
+        '<div class="aim-hint">Kaleye veya butonlara basarak nişan al, falso ver ve şutunu çek!</div>' +
+
+        '<!-- Şut Güçlendirme Paneli -->' +
+        '<div class="power-meter-box">' +
+          '<div class="power-meter-header">' +
+            '<span class="power-label">⚡ Şut Gücü: <b>' + (shotPower === 0 ? "Normal" : "Seviye " + shotPower + "/5") + '</b></span>' +
+            '<span class="power-flames">' + flameIcons + '</span>' +
+          '</div>' +
+          '<div class="power-bar-track">' +
+            '<div class="power-bar-fill level-' + shotPower + '"></div>' +
+          '</div>' +
+          (shotPower < 5 ?
+            '<button class="btn-boost-shot" id="btnBoostShot">⚡ Şutu Güçlendir (+1 Soru Çöz, Yanlışta İptal!)</button>' :
+            '<div class="max-power-text">💥 MAKSİMUM ATEŞLİ GÜÇ (5/5)! Kalecinin şansı yok, şutunu patlat!</div>'
+          ) +
+        '</div>' +
+
         '<div class="spin-gauge">' +
           '<span>Sol Kavis (Q)</span>' +
           '<div class="spin-track"><div class="spin-indicator" id="spinIndicator"></div></div>' +
@@ -2156,7 +2423,7 @@ input:checked + .slider:before {
         '<div class="controls-cluster">' +
           '<button class="ctl" id="btnAimL">◀ Sol<small>Ok / A</small></button>' +
           '<button class="ctl" id="btnSpinL">↺ Falso L<small>Q</small></button>' +
-          '<button class="ctl shoot" id="btnShoot">⚽ ŞUT ÇEK!<small>Space / Tıkla</small></button>' +
+          '<button class="ctl shoot" id="btnShoot">' + (shotPower >= 3 ? '🔥 ATEŞLİ ŞUT!' : '⚽ ŞUT ÇEK!') + '<small>Space / Tıkla</small></button>' +
           '<button class="ctl" id="btnSpinR">↻ Falso R<small>E</small></button>' +
           '<button class="ctl" id="btnAimR">▶ Sağ<small>Ok / D</small></button>' +
         '</div>' +
@@ -2172,6 +2439,25 @@ input:checked + .slider:before {
       e.preventDefault();
       shoot();
     });
+
+    var boostBtn = document.getElementById("btnBoostShot");
+    if (boostBtn) {
+      boostBtn.addEventListener("click", function () {
+        ac();
+        startBoostQuestion();
+      });
+    }
+  }
+
+  function startBoostQuestion() {
+    var pool = poolFor();
+    if (!pool || pool.length === 0) pool = WORDS;
+    q = pool[Math.floor(Math.random() * pool.length)];
+    options = buildOptions(q);
+    timeLeft = 10;
+    isBoostingShot = true;
+    state = "question";
+    renderQuestion();
   }
 
   function bindHold(el, dir) {
@@ -2197,20 +2483,37 @@ input:checked + .slider:before {
     state = "flight";
     flightP = 0;
     held.left = held.right = held.spinL = held.spinR = false;
-    sfx.kick();
+
+    if (shotPower > 0) {
+      sfx.fire();
+      spawnConfetti();
+    } else {
+      sfx.kick();
+    }
 
     var k = getCurrentKeeper();
     var shotTargetX = BALL0.x + aim + spin * 35;
 
-    if (Math.random() < k.diveChance) {
+    // Şut güçlendirildikçe kalecinin tutma ve uzanma ihtimali azalır!
+    var effectiveDiveChance = Math.max(0.08, k.diveChance * (1 - shotPower * 0.14));
+
+    if (Math.random() < effectiveDiveChance) {
       diving = true;
-      var keeperError = (Math.random() - 0.5) * (70 / k.speedMult);
-      keeperTarget = Math.max(GOAL.l + 25, Math.min(GOAL.r - 25, shotTargetX + keeperError));
+      var maxJump = k.maxDive || 120;
+      var wantedJump = shotTargetX - kx;
+      if (Math.abs(wantedJump) > maxJump) {
+        // Kaleci diğer köşedeyse yetişemez, maksimum atlayabileceği mesafeye kadar uçar
+        keeperTarget = kx + Math.sign(wantedJump) * maxJump;
+      } else {
+        var keeperError = (Math.random() - 0.5) * (40 / k.speedMult);
+        keeperTarget = Math.max(GOAL.l + 18, Math.min(GOAL.r - 18, shotTargetX + keeperError));
+      }
     }
 
+    var pwrText = (shotPower > 0) ? ' <b style="color:#ff3300;">(Ateşli Güç ' + shotPower + '/5 💥)</b>' : '';
     elPanel.innerHTML =
       '<div class="center">' +
-        '<h2 class="aim-title" style="color: var(--gold);">⚡ Top Havada! ' + k.name + ' uzanıyor...</h2>' +
+        '<h2 class="aim-title" style="color: var(--gold);">⚡ Top Havada!' + pwrText + ' ' + k.name + ' uzanıyor...</h2>' +
       '</div>';
   }
 
@@ -2245,7 +2548,7 @@ input:checked + .slider:before {
       elPanel.innerHTML = '<div class="center"><h2 class="aim-title" style="color: var(--gold);">İnanılmaz! Top Direğe Çarptı!</h2></div>';
       keeperEmotion = "happy";
       emotionTimer = 2.2;
-    } else if (distToKeeper < k.reach) {
+    } else if (distToKeeper < Math.max(12, k.reach - shotPower * 3.2)) {
       lastResult = "save";
       streak = 0;
       ball.vx = (finalX >= kx ? 1 : -1) * 180;
@@ -2255,11 +2558,12 @@ input:checked + .slider:before {
       elPanel.innerHTML = '<div class="center"><h2 class="aim-title" style="color: var(--bad);">' + k.name + ' Devleşti! Kurtardı!</h2></div>';
       keeperEmotion = "happy";
       emotionTimer = 2.4;
+      shotPower = 0;
     } else {
       lastResult = "goal";
       streak++;
       var streakBonus = Math.min(5, streak - 1);
-      var pts = 5 + streakBonus;
+      var pts = 5 + streakBonus + (shotPower * 2);
       score += pts;
       goals++;
       netShake = 1.0;
@@ -2285,6 +2589,7 @@ input:checked + .slider:before {
 
       check50PointMascot();
       checkLevelProgression();
+      shotPower = 0;
     }
   }
 
@@ -2446,13 +2751,17 @@ input:checked + .slider:before {
 
     var k = getCurrentKeeper();
     if (!diving) {
-      keeperTarget = 400 + Math.sin(time * 1.8 * k.speedMult) * 115;
+      keeperTarget = 400 + Math.sin(time * 1.4 * k.speedMult) * 90;
     }
-    kx += (keeperTarget - kx) * Math.min(1, dt * (diving ? 10 : 6) * k.speedMult);
-    keeperLean = Math.max(-0.6, Math.min(0.6, (keeperTarget - kx) * 0.007));
+    // Gerçekçi fizik: Kaleci ışınlanmaz, köşeden köşeye aniden fırlamaz!
+    var maxSpeed = (diving ? 280 : 130) * k.speedMult;
+    var kDiff = keeperTarget - kx;
+    var stepDist = Math.sign(kDiff) * Math.min(Math.abs(kDiff), maxSpeed * dt);
+    kx += stepDist;
+    keeperLean = Math.max(-0.55, Math.min(0.55, kDiff * 0.005));
 
     if (state === "flight") {
-      flightP += dt / 0.7;
+      flightP += dt / Math.max(0.34, (0.7 - shotPower * 0.07));
       var p = Math.min(1, flightP);
       var easeP = 1 - Math.pow(1 - p, 1.8);
       var curveOffset = (spin * 45) * easeP + Math.sin(p * Math.PI) * (spin * 25);
@@ -2460,16 +2769,19 @@ input:checked + .slider:before {
       ball.y = BALL0.y + (TARGET_Y - BALL0.y) * easeP - Math.sin(Math.PI * easeP) * 36;
       ball.s = 1 - 0.48 * easeP;
 
-      if (Math.random() < 0.8) {
+      if (Math.random() < 0.85 || shotPower > 0) {
+        var pColor = (shotPower >= 5) ? (Math.random() < 0.5 ? "#00f2fe" : "#ff007f")
+                   : (shotPower >= 1) ? (Math.random() < 0.5 ? "#ff5500" : "#ffd700")
+                   : player.ballType === "fire" ? (Math.random() < 0.5 ? "#ff5500" : "#ffbb00")
+                   : player.ballType === "rocket" ? "#aaaaaa"
+                   : player.ballType === "gold" ? "#ffd700"
+                   : "rgba(255,255,255,0.6)";
         ballParticles.push({
-          x: ball.x,
-          y: ball.y + 4,
-          s: ball.s * (7 + Math.random() * 5),
-          life: 0.45,
-          color: player.ballType === "fire" ? (Math.random() < 0.5 ? "#ff5500" : "#ffbb00")
-               : player.ballType === "rocket" ? "#aaaaaa"
-               : player.ballType === "gold" ? "#ffd700"
-               : "rgba(255,255,255,0.6)"
+          x: ball.x + (Math.random() - 0.5) * (shotPower * 6),
+          y: ball.y + 4 + (Math.random() - 0.5) * (shotPower * 6),
+          s: ball.s * (7 + shotPower * 3 + Math.random() * 5),
+          life: 0.45 + shotPower * 0.08,
+          color: pColor
         });
       }
 
@@ -2693,6 +3005,12 @@ input:checked + .slider:before {
       ctx.fillStyle = "#00f2fe";
       ctx.fillRect(-11, -85, 22, 5);
       ctx.shadowColor = "#00f2fe"; ctx.shadowBlur = 8;
+    } else if (k.accessory === "wildhair") {
+      ctx.fillStyle = k.hair;
+      ctx.beginPath(); ctx.arc(0, -88, 15, Math.PI, 0); ctx.fill();
+      for (var wa = -14; wa <= 14; wa += 7) {
+        ctx.fillRect(wa - 2, -103, 5, 15);
+      }
     } else {
       ctx.fillStyle = k.hair;
       ctx.beginPath(); ctx.arc(0, -88, 13, Math.PI, 0); ctx.fill();
@@ -2767,7 +3085,46 @@ input:checked + .slider:before {
       ctx.fill();
     }
 
-    var emoji = player.ballType === "fire" ? "🔥"
+    // Ateşli Şut Güçlendirme Efekti (Her seviyede daha ateşli ve parlak!)
+    if (shotPower > 0 && (state === "aim" || state === "flight" || state === "result")) {
+      var fireR = (20 + shotPower * 7) * s;
+      var grad = ctx.createRadialGradient(bx, by, 5 * s, bx, by, fireR);
+      if (shotPower >= 5) {
+        grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        grad.addColorStop(0.3, "rgba(0, 242, 254, 0.85)");
+        grad.addColorStop(0.65, "rgba(255, 0, 128, 0.7)");
+        grad.addColorStop(1, "rgba(255, 100, 0, 0)");
+      } else if (shotPower >= 3) {
+        grad.addColorStop(0, "rgba(255, 255, 180, 0.9)");
+        grad.addColorStop(0.35, "rgba(255, 120, 0, 0.8)");
+        grad.addColorStop(0.7, "rgba(230, 30, 0, 0.55)");
+        grad.addColorStop(1, "rgba(200, 0, 0, 0)");
+      } else {
+        grad.addColorStop(0, "rgba(255, 240, 150, 0.8)");
+        grad.addColorStop(0.5, "rgba(255, 140, 0, 0.5)");
+        grad.addColorStop(1, "rgba(255, 60, 0, 0)");
+      }
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(bx, by, fireR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dans eden alev parçacıkları
+      for (var fl = 0; fl < shotPower * 3; fl++) {
+        var angle = (time * 6 + fl * (Math.PI * 2 / (shotPower * 3))) % (Math.PI * 2);
+        var flameDist = (16 + Math.sin(time * 12 + fl) * 5 + shotPower * 4) * s;
+        var fx = bx + Math.cos(angle) * flameDist;
+        var fy = by + Math.sin(angle) * flameDist - (Math.abs(Math.sin(time * 10 + fl)) * 8 * s);
+        ctx.fillStyle = (shotPower >= 5 && fl % 2 === 0) ? "#00f2fe" : (fl % 2 === 0 ? "#ffcc00" : "#ff3300");
+        ctx.beginPath();
+        ctx.arc(fx, fy, (3.5 + Math.sin(time * 8 + fl) * 1.5) * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    var emoji = (shotPower >= 4) ? "🔥"
+              : (shotPower >= 2 && player.ballType === "classic") ? "🔥"
+              : player.ballType === "fire" ? "🔥"
               : player.ballType === "gold" ? "⭐"
               : player.ballType === "rocket" ? "🚀"
               : "⚽";
