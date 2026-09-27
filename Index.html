@@ -1729,8 +1729,7 @@ input:checked + .slider:before {
   function generateRandomName() {
     var fn = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
     var ln = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-    var base = fn + " " + ln;
-    return getUniquePlayerName(base, getLocalLeaderboard());
+    return fn + " " + ln;
   }
 
   var player = {
@@ -1755,6 +1754,10 @@ input:checked + .slider:before {
     var ss = localStorage.getItem("futbol_sound");
     if (ss !== null) soundEnabled = (ss === "true");
   } catch (e) {}
+
+  // İsmi numarasız tertemiz yap (Önceki 1, 2, 3 eklemelerini temizler)
+  player.name = (player.name || "Fırtına Golcü").replace(/\s+\d+$/, "").trim() || "Fırtına Golcü";
+  try { localStorage.setItem("futbol_player_name", player.name); } catch(e) {}
 
   function savePlayerProfile() {
     try {
@@ -1781,17 +1784,64 @@ input:checked + .slider:before {
     return _t1 + _t2 + _t3 + _t4;
   }
   var DEFAULT_LEADERBOARD = [
-    { name: "Fırtına Golcü 1 ⚡", score: 55, goals: 9, lvl: 7, acc: "90%", date: "Bugün" },
+    { name: "Fırtına Golcü ⚡", score: 55, goals: 9, lvl: 7, acc: "90%", date: "Bugün" },
     { name: "Panter Forvet 🐾", score: 45, goals: 7, lvl: 5, acc: "85%", date: "Bugün" },
     { name: "Sihirbaz Kaptan 🎯", score: 35, goals: 5, lvl: 4, acc: "80%", date: "Dün" }
   ];
+
+  // SADECE EN YÜKSEK PUANLI DURSUN: Her oyuncunun tek bir en yüksek skorunu tutan dedup fonksiyonu
+  function deduplicateScores(list) {
+    if (!Array.isArray(list)) return [];
+    var bestByName = {};
+
+    list.forEach(function (it) {
+      if (!it || !it.name) return;
+      var rawName = String(it.name || "").trim();
+      var avMatch = rawName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|[^\w\sğüşıöçĞÜŞİÖÇ]+)\s*/i);
+      var prefix = avMatch ? avMatch[1] + " " : "";
+      var clean = rawName.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*|^[^\w\sğüşıöçĞÜŞİÖÇ]+\s*/i, "").trim();
+      var base = clean.replace(/\s+\d+$/, "").trim();
+      if (!base) base = clean || "Golcü";
+      var key = base.toLowerCase();
+
+      var score = parseInt(it.score, 10) || 0;
+      var goals = parseInt(it.goals, 10) || 0;
+      var lvl = parseInt(it.lvl, 10) || 1;
+
+      // Sadece en yüksek puanlı kalsın!
+      if (!bestByName[key] || score > bestByName[key].score) {
+        bestByName[key] = {
+          name: prefix + base,
+          score: score,
+          goals: goals,
+          lvl: lvl,
+          acc: it.acc || "100%",
+          date: it.date || "Bugün"
+        };
+      }
+    });
+
+    var result = [];
+    for (var k in bestByName) {
+      if (Object.prototype.hasOwnProperty.call(bestByName, k)) {
+        result.push(bestByName[k]);
+      }
+    }
+    result.sort(function (a, b) { return b.score - a.score; });
+    return result.slice(0, 30);
+  }
 
   function getLocalLeaderboard() {
     try {
       var raw = localStorage.getItem("futbol_permanent_leaderboard_v3");
       if (raw) {
         var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Eski çoğaltılmış tüm isimleri tek seferde filtrele ve en yüksek skorlarını tut!
+          var cleaned = deduplicateScores(parsed);
+          localStorage.setItem("futbol_permanent_leaderboard_v3", JSON.stringify(cleaned));
+          return cleaned;
+        }
       }
     } catch (e) {}
     return DEFAULT_LEADERBOARD.slice();
@@ -1799,25 +1849,15 @@ input:checked + .slider:before {
 
   function setLocalLeaderboard(list) {
     try {
-      localStorage.setItem("futbol_permanent_leaderboard_v3", JSON.stringify(list));
+      var cleaned = deduplicateScores(list);
+      localStorage.setItem("futbol_permanent_leaderboard_v3", JSON.stringify(cleaned));
     } catch (e) {}
   }
 
-  // Çevrimdışı ve sunucu listesini akıllıca birleştir
+  // Çevrimdışı ve sunucu listesini akıllıca birleştir (her oyuncunun yalnızca en yüksek skoru)
   function mergeLeaderboard(serverList, localList) {
     var combined = (serverList || []).concat(localList || []);
-    var seen = {};
-    var unique = [];
-    combined.forEach(function (it) {
-      if (!it || !it.name) return;
-      var key = it.name + "_" + it.score + "_" + it.goals;
-      if (!seen[key]) {
-        seen[key] = 1;
-        unique.push(it);
-      }
-    });
-    unique.sort(function (a, b) { return b.score - a.score; });
-    return unique.slice(0, 40);
+    return deduplicateScores(combined);
   }
 
   // Canlı buluttan çekme fonksiyonu
@@ -1850,15 +1890,16 @@ input:checked + .slider:before {
     if (score <= 0) return;
     var acc = Math.round((correct / Math.max(1, total)) * 100) + "%";
     var nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    var currentLeaderboard = getLocalLeaderboard();
-    var resolvedName = getUniquePlayerName(player.name, currentLeaderboard);
-    if (resolvedName !== player.name) {
-      player.name = resolvedName;
-      savePlayerProfile();
-      updatePlayerDisplay();
-    }
+
+    // İsme ASLA numara ekleme, temiz tut!
+    var cleanPlayerName = (player.name || "Golcü").replace(/\s+\d+$/, "").trim();
+    if (!cleanPlayerName) cleanPlayerName = "Golcü";
+    player.name = cleanPlayerName;
+    savePlayerProfile();
+    updatePlayerDisplay();
+
     var entry = {
-      name: (player.avatar ? player.avatar + " " : "") + resolvedName,
+      name: (player.avatar ? player.avatar + " " : "") + cleanPlayerName,
       score: score,
       goals: goals,
       lvl: maxLvl || (currentLevelIdx + 1),
@@ -1866,11 +1907,9 @@ input:checked + .slider:before {
       date: "Bugün " + nowTime
     };
 
-    // 1) Önce yerel listeye anında ekle
+    // 1) Yerel listeye deduplicate ederek ekle (sadece daha yüksek puan ise güncellenir)
     var localList = getLocalLeaderboard();
-    localList.unshift(entry);
-    localList.sort(function (a, b) { return b.score - a.score; });
-    localList = localList.slice(0, 40);
+    localList = deduplicateScores([entry].concat(localList));
     setLocalLeaderboard(localList);
     renderLeaderboardDOM(localList);
 
@@ -1893,7 +1932,7 @@ input:checked + .slider:before {
           if (parsed && Array.isArray(parsed.scores)) existingContent = parsed.scores;
         } catch(e) {}
 
-        var updated = mergeLeaderboard([entry], existingContent);
+        var updated = deduplicateScores([entry].concat(existingContent));
         var jsonStr = JSON.stringify({ scores: updated }, null, 2);
         var b64Content = btoa(unescape(encodeURIComponent(jsonStr)));
 
@@ -1905,7 +1944,7 @@ input:checked + .slider:before {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            message: "Skor: " + resolvedName + " (" + score + "p)",
+            message: "Skor: " + cleanPlayerName + " (" + score + "p)",
             content: b64Content,
             sha: sha
           })
@@ -1960,42 +1999,6 @@ input:checked + .slider:before {
         box.appendChild(d);
       }
     });
-  }
-
-  function getUniquePlayerName(candidate, existingScores) {
-    var raw = (candidate || "").trim();
-    if (!raw) raw = "Golcü";
-    var baseMatch = raw.match(/^(.*?)(?:\s+(\d+))?$/);
-    var base = (baseMatch && baseMatch[1]) ? baseMatch[1].trim() : raw;
-    if (!base) base = "Golcü";
-
-    var usedNumbers = {};
-    var exactFound = false;
-    var list = existingScores || [];
-
-    for (var i = 0; i < list.length; i++) {
-      var entry = list[i];
-      if (!entry || !entry.name) continue;
-      var clean = entry.name.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*|^[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ\s]+\s*/, "").trim();
-      if (clean.toLowerCase() === base.toLowerCase()) {
-        exactFound = true;
-      }
-      var escBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      var m = clean.match(new RegExp("^" + escBase + "\\s+(\\d+)$", "i"));
-      if (m && m[1]) {
-        usedNumbers[parseInt(m[1], 10)] = true;
-      }
-    }
-
-    if (!exactFound && Object.keys(usedNumbers).length === 0) {
-      return base;
-    }
-
-    var n = 1;
-    while (usedNumbers[n]) {
-      n++;
-    }
-    return base + " " + n;
   }
 
   function renderLeaderboard() {
@@ -2342,7 +2345,7 @@ input:checked + .slider:before {
   }
 
   function finishEarly() {
-    if (state === "start" || state === "end") return;
+    if (state === "start") return;
     afterFeedback = null;
     isBoostingShot = false;
     shotPower = 0;
@@ -2352,8 +2355,9 @@ input:checked + .slider:before {
       saveScoreToLeaderboard(score, goals, correctCount, answered, currentLevelIdx + 1);
     }
     sfx.end();
+    closeModal();
     showStart();
-    banner("MAÇ BİTTİ! 🛑<br><small>" + score + " Puan Kaydedildi & Ana Menüye Dönüldü</small>", "gold small");
+    banner("MAÇ BİTTİ! 🛑<br><small>" + (score > 0 ? score + " Puan Kaydedildi • " : "") + "Ana Menüye Dönüldü</small>", "gold small");
   }
   headerEndBtn.addEventListener("click", finishEarly);
 
@@ -2464,6 +2468,9 @@ input:checked + .slider:before {
           '<button class="ctl" id="btnSpinR">↻ Falso R<small>E</small></button>' +
           '<button class="ctl" id="btnAimR">▶ Sağ<small>Ok / D</small></button>' +
         '</div>' +
+        '<div style="display:flex; justify-content:center; align-items:center; margin-top:14px; padding-top:10px; border-top:1px solid var(--line);">' +
+          '<button class="btn danger" id="aimEndBtn" style="padding:6px 18px; font-size:13px;">🛑 Maçı Bitir</button>' +
+        '</div>' +
       '</div>';
     elPanel.innerHTML = html;
 
@@ -2483,6 +2490,11 @@ input:checked + .slider:before {
         ac();
         startBoostQuestion();
       });
+    }
+
+    var aimEndBtn = document.getElementById("aimEndBtn");
+    if (aimEndBtn) {
+      aimEndBtn.addEventListener("click", finishEarly);
     }
   }
 
@@ -3536,10 +3548,9 @@ input:checked + .slider:before {
 
   pNameInput.value = player.name;
   pNameInput.addEventListener("change", function () {
-    var val = pNameInput.value.trim() || "Golcü";
-    var resolved = getUniquePlayerName(val, getLocalLeaderboard());
-    player.name = resolved;
-    pNameInput.value = resolved;
+    var val = pNameInput.value.replace(/\s+\d+$/, "").trim() || "Golcü";
+    player.name = val;
+    pNameInput.value = val;
     savePlayerProfile();
     updatePlayerDisplay();
   });
@@ -3551,9 +3562,8 @@ input:checked + .slider:before {
 
   rndNameBtn.addEventListener("click", function () {
     var rawName = generateRandomName();
-    var resolved = getUniquePlayerName(rawName, getLocalLeaderboard());
-    pNameInput.value = resolved;
-    player.name = resolved;
+    pNameInput.value = rawName;
+    player.name = rawName;
     savePlayerProfile();
     updatePlayerDisplay();
     sfx.right();
