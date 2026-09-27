@@ -318,32 +318,39 @@ canvas {
   -webkit-user-select: none;
 }
 
-/* Canlı Skor & Bilgi Katmanı */
-.stage-hud {
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  right: 12px;
+/* Saha & Kaleci Bilgi Şeridi (Kaleciyi ve Sahayı Asla Kapatmaz) */
+.field-info-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  pointer-events: none;
+  gap: 8px;
+  margin-bottom: 8px;
 }
-.stadium-badge {
-  background: rgba(8, 24, 13, 0.88);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.22);
-  color: #fff;
-  border-radius: 10px;
-  padding: 5px 11px;
-  font-size: 12px;
+.field-badge {
+  background: var(--panel-2);
+  border: 1.5px solid var(--line);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 13px;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
 }
-.stadium-badge b { color: var(--gold); }
+.field-badge b { color: var(--gold); }
+@media (max-width: 600px) {
+  .field-info-bar {
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .field-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
 
 .overlay {
   position: absolute;
@@ -1144,15 +1151,15 @@ input:checked + .slider:before {
   <!-- Zamanlayıcı Çubuğu -->
   <div class="timer-bar" id="timerBar"><i id="timerFill"></i></div>
 
-  <!-- Sahne / Futbol Sahası -->
+  <!-- Saha & Kaleci Bilgi Şeridi (Kaleciyi Asla Kapatmaz!) -->
+  <div class="field-info-bar">
+    <div class="field-badge">🏟️ <span id="stadiumTitle">Mahalle Sahası</span> • <b id="hudLevelBadge">Lvl 1</b>: <span id="hudKeeperName">Ali Çaylak</span></div>
+    <div class="field-badge" id="hudDifficulty">Ustalık: <b>Otomatik</b></div>
+  </div>
+
+  <!-- Sahne / Futbol Sahası (Tamamen Temiz & Engellenmeyen Görüş) -->
   <div class="stage" id="stageContainer">
     <canvas id="c" width="800" height="480" aria-label="Futbol Sahası"></canvas>
-    
-    <div class="stage-hud">
-      <div class="stadium-badge">🏟️ <span id="stadiumTitle">Köy Sahası</span> • <b id="hudLevelBadge">Lvl 1</b>: <span id="hudKeeperName">Ali Çaylak</span></div>
-      <div class="stadium-badge" id="hudDifficulty">Ustalık: <b>Otomatik</b></div>
-    </div>
-
     <div class="overlay" id="overlay"></div>
   </div>
 
@@ -2176,8 +2183,21 @@ input:checked + .slider:before {
      ========================================================================== */
   function showStart() {
     state = "start";
+    score = 0;
+    goals = 0;
+    correctCount = 0;
+    qNum = 0;
+    streak = 0;
+    answered = 0;
+    shotPower = 0;
+    isBoostingShot = false;
+    afterFeedback = null;
+    stateTimer = 0;
+    diving = false;
+    ball = { x: BALL0.x, y: BALL0.y, s: 1, vx: 0, vy: 0, free: false, spin: 0 };
     headerEndBtn.style.display = "none";
     elTimerBar.classList.remove("on", "low");
+    updateStats();
     updatePlayerDisplay();
 
     var html =
@@ -2341,25 +2361,49 @@ input:checked + .slider:before {
       });
     });
 
-    document.getElementById("panelEndBtn").addEventListener("click", finishEarly);
+    bindFinishBtn(document.getElementById("panelEndBtn"));
   }
 
-  function finishEarly() {
-    if (state === "start") return;
+  function bindFinishBtn(btn) {
+    if (!btn) return;
+    btn.style.cursor = "pointer";
+    btn.style.touchAction = "manipulation";
+    var lastTime = 0;
+    function handler(e) {
+      var now = Date.now();
+      if (now - lastTime < 450) return;
+      lastTime = now;
+      finishEarly(e);
+    }
+    btn.addEventListener("click", handler);
+    btn.addEventListener("pointerup", handler);
+  }
+
+  function finishEarly(e) {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+    }
+    if (state === "start") {
+      try { elPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(err) {}
+      return;
+    }
+    var savedScore = score;
     afterFeedback = null;
     isBoostingShot = false;
     shotPower = 0;
     elTimerBar.classList.remove("on", "low");
     headerEndBtn.style.display = "none";
-    if (score > 0) {
-      saveScoreToLeaderboard(score, goals, correctCount, answered, currentLevelIdx + 1);
+    if (savedScore > 0) {
+      saveScoreToLeaderboard(savedScore, goals, correctCount, answered, currentLevelIdx + 1);
     }
     sfx.end();
     closeModal();
     showStart();
-    banner("MAÇ BİTTİ! 🛑<br><small>" + (score > 0 ? score + " Puan Kaydedildi • " : "") + "Ana Menüye Dönüldü</small>", "gold small");
+    banner("MAÇ BİTTİ! 🛑<br><small>" + (savedScore > 0 ? savedScore + " Puan Kaydedildi • " : "") + "Ana Menüye Dönüldü</small>", "gold small");
+    try { elPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(err) {}
   }
-  headerEndBtn.addEventListener("click", finishEarly);
+  bindFinishBtn(headerEndBtn);
 
   function answer(i) {
     if (state !== "question") return;
@@ -2494,7 +2538,7 @@ input:checked + .slider:before {
 
     var aimEndBtn = document.getElementById("aimEndBtn");
     if (aimEndBtn) {
-      aimEndBtn.addEventListener("click", finishEarly);
+      bindFinishBtn(aimEndBtn);
     }
   }
 
