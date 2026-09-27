@@ -1,3 +1,28 @@
 {
-  "scores": []
+  "scores": [
+    {
+      "name": "F\u0131rt\u0131na Golc\u00fc 1 \u26a1",
+      "score": 55,
+      "goals": 9,
+      "lvl": 7,
+      "acc": "90%",
+      "date": "Bug\u00fcn"
+    },
+    {
+      "name": "Panter Forvet \ud83d\udc3e",
+      "score": 45,
+      "goals": 7,
+      "lvl": 5,
+      "acc": "85%",
+      "date": "Bug\u00fcn"
+    },
+    {
+      "name": "Sihirbaz Kaptan \ud83c\udfaf",
+      "score": 35,
+      "goals": 5,
+      "lvl": 4,
+      "acc": "80%",
+      "date": "D\u00fcn"
+    }
+  ]
 }
