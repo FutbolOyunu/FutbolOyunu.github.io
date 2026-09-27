@@ -41,6 +41,14 @@
       "date": "Bugün"
     },
     {
+      "name": "⚽ Mohamed alhamoud",
+      "score": 36,
+      "goals": 6,
+      "lvl": 7,
+      "acc": "73%",
+      "date": "Bugün 09:28 م"
+    },
+    {
       "name": "⚽ Kral 10 Numara",
       "score": 36,
       "goals": 6,
@@ -55,14 +63,6 @@
       "lvl": 4,
       "acc": "80%",
       "date": "Dün"
-    },
-    {
-      "name": "⚽ Mohamed alhamoud",
-      "score": 34,
-      "goals": 6,
-      "lvl": 7,
-      "acc": "90%",
-      "date": "Bugün 09:17 م"
     },
     {
       "name": "🧤 Ali Türk",
