@@ -1,28 +1,36 @@
 {
   "scores": [
     {
-      "name": "F\u0131rt\u0131na Golc\u00fc \u26a1",
+      "name": "Fırtına Golcü ⚡",
       "score": 55,
       "goals": 9,
       "lvl": 7,
       "acc": "90%",
-      "date": "Bug\u00fcn"
+      "date": "Bugün"
     },
     {
-      "name": "Panter Forvet \ud83d\udc3e",
+      "name": "Panter Forvet 🐾",
       "score": 45,
       "goals": 7,
       "lvl": 5,
       "acc": "85%",
-      "date": "Bug\u00fcn"
+      "date": "Bugün"
     },
     {
-      "name": "Sihirbaz Kaptan \ud83c\udfaf",
+      "name": "Sihirbaz Kaptan 🎯",
       "score": 35,
       "goals": 5,
       "lvl": 4,
       "acc": "80%",
-      "date": "D\u00fcn"
+      "date": "Dün"
+    },
+    {
+      "name": "🧤 Ali Türk",
+      "score": 27,
+      "goals": 4,
+      "lvl": 5,
+      "acc": "91%",
+      "date": "Bugün 05:42 PM"
     }
   ]
 }
