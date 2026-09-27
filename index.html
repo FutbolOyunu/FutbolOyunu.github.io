@@ -1705,38 +1705,45 @@ input:checked + .slider:before {
       });
   }
 
+  function esc(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
   function renderLeaderboardDOM(list) {
     var targets = [
       document.getElementById("leaderboardList"),
       document.getElementById("sidebarLeaderboardList")
     ];
 
-    targets.forEach(function (container) {
-      if (!container) return;
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:13px;">Henüz kayıtlı bir skor bulunmuyor. İlk golleri sen at! ⚽</div>';
+    targets.forEach(function (box) {
+      if (!box) return;
+      box.innerHTML = "";
+      var items = (list && list.length > 0) ? list : getLocalLeaderboard();
+      if (!items || items.length === 0) {
+        box.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:12px;">Henüz kayıtlı bir skor bulunmuyor. İlk golleri sen at! ⚽</div>';
         return;
       }
+      var isSidebar = (box.id === "sidebarLeaderboardList");
+      var maxItems = isSidebar ? Math.min(25, items.length) : items.length;
 
-      var html = "";
-      var isSidebar = (container.id === "sidebarLeaderboardList");
-      var maxItems = isSidebar ? Math.min(25, list.length) : list.length;
-
-      for (var i = 0; i < maxItems; i++) {
-        var it = list[i];
-        var rankClass = (i === 0) ? "r1" : (i === 1) ? "r2" : (i === 2) ? "r3" : "";
-        var medal = (i === 0) ? "🥇" : (i === 1) ? "🥈" : (i === 2) ? "🥉" : "#" + (i + 1);
-
-        html += '<div class="leader-item ' + rankClass + '" style="' + (isSidebar ? 'padding:8px 10px; margin-bottom:6px;' : '') + '">' +
-          '<div class="leader-rank">' + medal + '</div>' +
-          '<div class="leader-info">' +
-            '<div class="leader-name" style="' + (isSidebar ? 'font-size:13px;' : '') + '">' + escapeHTML(it.name || "Anonim Golcü") + '</div>' +
-            '<div class="leader-meta" style="' + (isSidebar ? 'font-size:11px;' : '') + '">' + (it.goals || 0) + ' Gol • ' + (it.acc || '100%') + ' • Lvl ' + (it.lvl || 1) + ' • <span style="opacity:0.8;">' + escapeHTML(it.date || "") + '</span></div>' +
+      for (var idx = 0; idx < maxItems; idx++) {
+        var it = items[idx];
+        var d = document.createElement("div");
+        d.className = "lb-item";
+        if (isSidebar) {
+          d.style.padding = "7px 10px";
+          d.style.marginBottom = "6px";
+        }
+        var rankBadge = (idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "#" + (idx + 1));
+        d.innerHTML =
+          '<div class="lb-rank"' + (isSidebar ? ' style="font-size:14px; width:26px;"' : '') + '>' + rankBadge + '</div>' +
+          '<div class="lb-info">' +
+            '<div class="lb-name"' + (isSidebar ? ' style="font-size:13px;"' : '') + '>' + esc(it.name || "Anonim Golcü") + '</div>' +
+            '<div class="lb-meta"' + (isSidebar ? ' style="font-size:11px;"' : '') + '>Lvl ' + (it.lvl || 1) + ' • ' + (it.goals || 0) + ' Gol • ' + (it.acc || "100%") + ' • ' + esc(it.date || "") + '</div>' +
           '</div>' +
-          '<div class="leader-score" style="' + (isSidebar ? 'font-size:15px; min-width:48px;' : '') + '">' + (it.score || 0) + ' <small style="font-size:10px;">p</small></div>' +
-        '</div>';
+          '<div class="lb-score"' + (isSidebar ? ' style="font-size:15px;"' : '') + '>' + (it.score || 0) + ' <small style="font-size:10px;">Puan</small></div>';
+        box.appendChild(d);
       }
-      container.innerHTML = html;
     });
   }
 
@@ -1754,7 +1761,6 @@ input:checked + .slider:before {
     for (var i = 0; i < list.length; i++) {
       var entry = list[i];
       if (!entry || !entry.name) continue;
-      // strip leading emoji if present
       var clean = entry.name.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*|^[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ\s]+\s*/, "").trim();
       if (clean.toLowerCase() === base.toLowerCase()) {
         exactFound = true;
