@@ -1867,7 +1867,7 @@ input:checked + .slider:before {
     return deduplicateScores(combined);
   }
 
-  // Canlı buluttan çekme fonksiyonu
+  // Canlı buluttan çekme fonksiyonu (GitHub Repo contents/scores.json ile anında 0s gecikmeli sync)
   function fetchOnlineLeaderboard(onSuccess) {
     var badge = document.getElementById("lbSyncBadge");
     var sBadge = document.getElementById("sidebarSyncBadge");
@@ -1877,19 +1877,57 @@ input:checked + .slider:before {
     }
     setBadgeText("⏳ Buluttan Çekiliyor...");
 
-    fetch(GITHUB_RAW_URL + "?nocache=" + Date.now())
-      .then(function (res) { return res.json(); })
-      .then(function (json) {
-        var remoteScores = (json && Array.isArray(json.scores)) ? json.scores : [];
-        var merged = mergeLeaderboard(remoteScores, getLocalLeaderboard());
-        setLocalLeaderboard(merged);
-        setBadgeText("🟢 Canlı Buluta Bağlı (" + merged.length + " Skor)");
-        renderLeaderboardDOM(merged);
-        if (onSuccess) onSuccess(merged);
+    var token = getGhToken();
+    var headers = { "Accept": "application/vnd.github.v3+json" };
+    if (token) headers["Authorization"] = "Bearer " + token;
+
+    function handleSuccess(remoteScores) {
+      var merged = mergeLeaderboard(remoteScores, getLocalLeaderboard());
+      setLocalLeaderboard(merged);
+      setBadgeText("🟢 Canlı Buluta Bağlı (" + merged.length + " Skor)");
+      renderLeaderboardDOM(merged);
+      if (onSuccess) onSuccess(merged);
+    }
+
+    // 1. Doğrudan GitHub contents API (Önbelleksiz, anında güncel liste)
+    fetch(GITHUB_API_URL + "?ts=" + Date.now(), { headers: headers, cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
       })
-      .catch(function (err) {
-        setBadgeText("⚡ Çevrimdışı Bellek");
-        renderLeaderboardDOM(getLocalLeaderboard());
+      .then(function (fileData) {
+        var remoteScores = [];
+        try {
+          var decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ""))));
+          var parsed = JSON.parse(decoded);
+          if (parsed && Array.isArray(parsed.scores)) remoteScores = parsed.scores;
+        } catch (e) {}
+        handleSuccess(remoteScores);
+      })
+      .catch(function () {
+        // 2. Yedek: Aynı sunucu / GitHub Pages scores.json dosyası
+        fetch("./scores.json?ts=" + Date.now(), { cache: "no-store" })
+          .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          })
+          .then(function (json) {
+            var remoteScores = (json && Array.isArray(json.scores)) ? json.scores : [];
+            handleSuccess(remoteScores);
+          })
+          .catch(function () {
+            // 3. Yedek: raw.githubusercontent.com
+            fetch(GITHUB_RAW_URL + "?nocache=" + Date.now(), { cache: "no-store" })
+              .then(function (res) { return res.json(); })
+              .then(function (json) {
+                var remoteScores = (json && Array.isArray(json.scores)) ? json.scores : [];
+                handleSuccess(remoteScores);
+              })
+              .catch(function () {
+                setBadgeText("⚡ Çevrimdışı Bellek");
+                renderLeaderboardDOM(getLocalLeaderboard());
+              });
+          });
       });
   }
 
@@ -1920,50 +1958,80 @@ input:checked + .slider:before {
     setLocalLeaderboard(localList);
     renderLeaderboardDOM(localList);
 
-    // 2) Gerçek zamanlı GitHub Repo contents API'ye güvenli kaydet (asla silinmez, limitsiz)
+    // 2) Gerçek zamanlı GitHub Repo contents API'ye kaydet (doğrudan scores.json)
+    var badge = document.getElementById("lbSyncBadge");
+    var sBadge = document.getElementById("sidebarSyncBadge");
+    function setBadgeText(txt) {
+      if (badge) badge.innerHTML = txt;
+      if (sBadge) sBadge.innerHTML = txt;
+    }
     setBadgeText("⏳ Buluta Yükleniyor...");
 
     var token = getGhToken();
-    fetch(GITHUB_API_URL + "?nocache=" + Date.now(), {
-      headers: {
-        "Authorization": "Bearer " + token,
-        "User-Agent": "FutbolOyunuApp"
-      }
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (fileData) {
-        var sha = fileData.sha;
-        var existingContent = [];
-        try {
-          var parsed = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, "")))));
-          if (parsed && Array.isArray(parsed.scores)) existingContent = parsed.scores;
-        } catch(e) {}
+    var authHeaders = {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github.v3+json",
+      "Content-Type": "application/json"
+    };
 
-        var updated = deduplicateScores([entry].concat(existingContent));
-        var jsonStr = JSON.stringify({ scores: updated }, null, 2);
-        var b64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+    function attemptSave(retryLeft) {
+      fetch(GITHUB_API_URL + "?ts=" + Date.now(), {
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Accept": "application/vnd.github.v3+json"
+        },
+        cache: "no-store"
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("GET failed HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (fileData) {
+          var sha = fileData.sha;
+          var existingContent = [];
+          try {
+            var decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ""))));
+            var parsed = JSON.parse(decoded);
+            if (parsed && Array.isArray(parsed.scores)) existingContent = parsed.scores;
+          } catch(e) {}
 
-        return fetch(GITHUB_API_URL, {
-          method: "PUT",
-          headers: {
-            "Authorization": "Bearer " + token,
-            "User-Agent": "FutbolOyunuApp",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            message: "Skor: " + cleanPlayerName + " (" + score + "p)",
-            content: b64Content,
-            sha: sha
-          })
+          var updated = deduplicateScores([entry].concat(existingContent));
+          var jsonStr = JSON.stringify({ scores: updated }, null, 2);
+          var b64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+          return fetch(GITHUB_API_URL, {
+            method: "PUT",
+            headers: authHeaders,
+            body: JSON.stringify({
+              message: "Skor: " + cleanPlayerName + " (" + score + "p)",
+              content: b64Content,
+              sha: sha
+            })
+          });
+        })
+        .then(function (res) {
+          if (!res.ok) {
+            if (res.status === 409 && retryLeft > 0) {
+              // Eşzamanlı yazma çakışması (SHA değişmiş): 500ms bekle ve taze SHA ile tekrar dene
+              setTimeout(function () { attemptSave(retryLeft - 1); }, 500);
+              return;
+            }
+            throw new Error("PUT failed HTTP " + res.status);
+          }
+          return res.json();
+        })
+        .then(function (resData) {
+          if (resData) {
+            setBadgeText("🟢 Buluta Kaydedildi! (Dünya Çapında Aktif)");
+            setTimeout(fetchOnlineLeaderboard, 1200);
+          }
+        })
+        .catch(function () {
+          setBadgeText("⚡ Yerel Kaydedildi");
         });
-      })
-      .then(function (res) { return res.json(); })
-      .then(function () {
-        setBadgeText("🟢 Buluta Kaydedildi! (Dünya Çapında Aktif)");
-      })
-      .catch(function () {
-        setBadgeText("⚡ Yerel Kaydedildi");
-      });
+    }
+
+    attemptSave(2);
   }
 
   function esc(s) {
